@@ -2,24 +2,21 @@ package com.example.cabglyph
 
 import android.content.ComponentName
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
+import android.graphics.Bitmap
 import android.util.Log
 import com.nothing.ketchum.Glyph
 import com.nothing.ketchum.GlyphMatrixFrame
 import com.nothing.ketchum.GlyphMatrixManager
 import com.nothing.ketchum.GlyphMatrixObject
 
-/** Shows the cab info on the Glyph Matrix from inside our app (not as a Glyph Toy). */
+/**
+ * Thin wrapper over the Glyph Matrix SDK: draws a 25x25 frame from inside our app
+ * (not as a Glyph Toy). What to draw is decided by [MatrixController].
+ */
 class GlyphDisplay(private val context: Context) {
     private var gm: GlyphMatrixManager? = null
     private var connected = false
-    private var pending: CabInfo? = null
-    private val handler = Handler(Looper.getMainLooper())
-    private val clearTask = Runnable { clear() }
-
-    /** How long to keep the code on the matrix after the notification arrives. */
-    var displayMillis: Long = 45 * 60 * 1000L
+    private var pending: Bitmap? = null
 
     fun start() {
         if (gm != null) return
@@ -37,21 +34,19 @@ class GlyphDisplay(private val context: Context) {
         }
     }
 
-    fun show(info: CabInfo) {
-        pending = info
+    fun show(frameBitmap: Bitmap) {
+        pending = frameBitmap
         val m = gm
         if (m == null || !connected) { start(); return }
         try {
             val obj = GlyphMatrixObject.Builder()
-                .setImageSource(MatrixRenderer.render(info.otp, info.cabLast4))
+                .setImageSource(frameBitmap)
                 .setPosition(0, 0)
                 .setScale(100)
                 .setBrightness(255)
                 .build()
             val frame = GlyphMatrixFrame.Builder().addTop(obj).build(context)
             m.setAppMatrixFrame(frame)
-            handler.removeCallbacks(clearTask)
-            handler.postDelayed(clearTask, displayMillis)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to draw on Glyph Matrix", e)
         }
@@ -59,7 +54,6 @@ class GlyphDisplay(private val context: Context) {
 
     fun clear() {
         pending = null
-        handler.removeCallbacks(clearTask)
         try { gm?.closeAppMatrix() } catch (e: Exception) { Log.e(TAG, "close failed", e) }
     }
 
