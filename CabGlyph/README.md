@@ -20,8 +20,22 @@ Reads the MoveInSync cab SMS/notification and shows on the Glyph Matrix:
 ## Behaviour
 - Matches any notification containing "MoveInSync" with `OTP ####` and `CabNo:...`
   (works whether it comes as an SMS or an app notification).
-- Stays on the matrix for 45 min (change `displayMillis` in `GlyphDisplay.kt`), or until you tap Clear.
+- Stays on the matrix for 45 min (change `cabDisplayMillis` in `MatrixController.kt`), or until you tap *Clear cab code*.
 - Pressing the Glyph Button (toy carousel) takes priority over app content — that's an SDK rule.
+
+## Music (optional, off by default)
+Turn these on in the app under **MUSIC**. They reuse the notification access you already granted,
+which is also what lets the app see media sessions (Spotify, YT Music, …).
+
+- **Now playing on Glyph Matrix** — album art as a greyscale disc with a progress ring
+  around the edge that fills as the song plays. Cab codes always win: when a MoveInSync
+  message arrives it replaces the music for 45 min (or until *Clear cab code*), then music returns.
+- **Generate lock screen wallpaper per song** — builds a wallpaper from the album art
+  (gradient + flowing ribbons + a 25×25 dot-matrix halftone of the cover) and sets it on the
+  lock screen only. It waits until a song has played for 5 s, so skipping tracks doesn't
+  re-theme Nothing OS (the lock clock and accent colours follow the wallpaper).
+  It overwrites your current lock wallpaper — save it first if you want it back.
+- **Make wallpaper for current song** — applies it immediately, handy for testing.
 
 ## If imports don't resolve
 The SDK classes live in `com.nothing.ketchum`. If Android Studio can't find them,
